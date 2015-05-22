@@ -110,4 +110,4 @@ typedef vector2<int>          vector2i;
 typedef vector2<unsigned int> vector2u;
 typedef vector2<float>        vector2f;
 
-#endif /* !VECTOR_H_ */
+#endif // !VECTOR_H_
