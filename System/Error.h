@@ -1,6 +1,8 @@
 #ifndef ERROR_H_
 #define ERROR_H_
 
+#define DEBUG
+
 #include <iostream>
 #include <string>
 

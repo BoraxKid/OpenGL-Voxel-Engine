@@ -11,5 +11,7 @@
 
 GLuint getShader(std::string filename, GLenum type);
 GLuint getProgram(std::string vertexFilename, std::string fragmentFilename);
+GLint getAttrib(GLuint program, std::string attributeName);
+GLint getUniform(GLuint program, std::string uniformName);
 
 #endif // !SHADER_H_
