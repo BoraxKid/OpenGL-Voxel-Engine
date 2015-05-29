@@ -1,5 +1,6 @@
 #include "Graphics/Renderer.h"
-
+#include <noise\noise.h>
+#include "Noise/NoiseUtils.h"
 Renderer *g_window;
 
 void onReshape(int x, int y)

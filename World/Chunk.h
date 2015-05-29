@@ -11,6 +11,9 @@
 #include <time.h>
 #include <iostream>
 #include <glm/glm.hpp>
+#include <vector>
+#include <noise\noise.h>
+#include "../Noise/NoiseUtils.h"
 #include "../Dependencies/glew/glew.h"
 #include "../System/Vector.h"
 
@@ -24,7 +27,14 @@ typedef struct s_surround
 	void *west;
 	void *above;
 	void *below;
-} t_surround;
+} Surround;
+
+enum Color
+{
+	NONE, WATER, GRASS, STONE, SAND, DIRT, SNOW
+};
+
+using namespace noise;
 
 class Chunk
 {
@@ -32,15 +42,19 @@ public:
 	Chunk();
 	Chunk(int x, int y, int z);
 	~Chunk();
-	void generate();
+	Color getEnumColor(float height);
+	vector3i getRGBColor(Color color);
+	void generateChunk();
+	void generateVertices();
 	void addBlockToVertices(vector3i blockColor);
 	void render(GLint attributeCoord);
 
 private:
 	float4 _vertices[CHUNK_SIZE * 36];
+	Color _blocks[CHUNK_X][CHUNK_Y][CHUNK_Z];
 	GLuint _vboVertices;
 	vector3i _it;
-	t_surround *_surround;
+	Surround *_surround;
 	vector3i _chunckPos;
 	int _vertNumb;
 	int _vertColor;
