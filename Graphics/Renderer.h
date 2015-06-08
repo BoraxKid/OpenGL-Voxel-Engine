@@ -37,6 +37,7 @@ private:
 	unsigned int _keys;
 	GLuint	_program;
 	GLint _attCoord;
+	GLint _attColor;
 	GLint _uniMvp;
 };
 

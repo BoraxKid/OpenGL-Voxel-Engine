@@ -1,9 +1,10 @@
-attribute vec4 coord;
+attribute vec3 coord;
+attribute vec3 colors;
 uniform mat4 mvp;
-varying float f_color;
+varying vec3 voxels_color;
 
 void main(void)
 {
-	gl_Position = mvp * vec4(coord.xyz, 1.0);
-	f_color = coord.w;
+	gl_Position = mvp * vec4(coord.xzy, 1.0);
+	voxels_color = colors;
 }

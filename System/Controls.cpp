@@ -19,16 +19,8 @@ void ControlManager::init()
 	this->_position = glm::vec3(-12, 9, 8);
 	this->_horizontalAngle = 3.14f / 2.0f;
 	this->_verticalAngle = 0.0f;
-	std::fstream fovFile("fov.zgeg", std::ios::in);
-	std::stringstream buffer;
 
 	this->_FOV = 45.0f;
-	if (fovFile.is_open())
-	{
-		buffer << fovFile.rdbuf();
-		this->_FOV = atof(buffer.str().c_str());
-		fovFile.close();
-	}
 	this->_speed = 0.01f;
 	this->_mouseSpeed = 0.005f;
 	this->_mousePos = vector2i(0, 0);
@@ -73,7 +65,7 @@ void ControlManager::computeMatrices(vector2i windowSize, vector2i mousePos, uns
 		this->_position += up * deltaTime * this->_speed;
 	if (keys & 32) // GO DOWN
 		this->_position -= up * deltaTime * this->_speed;
-	this->_projectionMatrix = glm::perspective(this->_FOV, 4.0f / 3.0f, 0.1f, 100.0f);
+	this->_projectionMatrix = glm::perspective(this->_FOV, 16.0f / 9.0f, 0.1f, 100.0f);
 	this->_viewMatrix = glm::lookAt(this->_position, this->_position + direction, up);
 	this->_lastTime = currentTime;
 }

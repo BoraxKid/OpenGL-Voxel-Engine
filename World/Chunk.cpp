@@ -53,9 +53,9 @@ vector3i Chunk::getRGBColor(Color color)
 	if (color == SAND)
 		return (vector3i(240, 240, 64));
 	if (color == GRASS)
-		return (vector3i(32, 160, 0));
+		return (vector3i(147, 105, 46));
 	if (color == DIRT)
-		return (vector3i(224, 224, 0));
+		return (vector3i(32, 160, 0));
 	if (color == STONE)
 		return (vector3i(128, 128, 128));
 	if (color == SNOW)
@@ -63,7 +63,6 @@ vector3i Chunk::getRGBColor(Color color)
 	if (color == WATER)
 		return (vector3i(0, 0, 255));
 	return (vector3i(255, 0, 0));
-
 }
 
 void Chunk::generateChunk()
@@ -93,40 +92,40 @@ void Chunk::generateChunk()
 	renderer.SetLightContrast(3.0); // Triple the contrast
 	renderer.SetLightBrightness(2.0); // Double the brightness
 	renderer.Render();
+	/*
 	noise::utils::WriterBMP writer;
 	writer.SetSourceImage(image);
 	writer.SetDestFilename("tutorial.bmp");
 	writer.WriteDestFile();
+	*/
 
 	vector3i i;
 	float height;
 	int blockHeight;
-	int tmp;
-	int index;
 	i.x = 0;
 	while (i.x < CHUNK_X)
 	{
-		i.z = 0;
-		while (i.z < CHUNK_Z)
+		i.y = 0;
+		while (i.y < CHUNK_Y)
 		{
-			height = heightMap.GetValue(i.x, i.z);
-			blockHeight = (int)(height * (float)CHUNK_Y);
-			i.y = 0;
-			while (i.y < blockHeight)
+			height = heightMap.GetValue(i.x, i.y);
+			blockHeight = (int)(height * (float)CHUNK_Z / 2);
+			i.z = 0;
+			while (i.z < blockHeight)
 			{
-				this->_blocks[i.x][i.z][i.y] = this->getEnumColor(height);
-				++i.y;
+				this->_blocks[i.x][i.y][i.z] = this->getEnumColor(height);
+				++i.z;
 			}
-			if (i.y == 0)
+			if (i.z == 0)
 			{
-				this->_blocks[i.x][i.z][i.y++] = this->getEnumColor(height);
+				this->_blocks[i.x][i.y][i.z++] = this->getEnumColor(height);
 			}
-			while (i.y < CHUNK_Y)
+			while (i.z < CHUNK_Z)
 			{
-				this->_blocks[i.x][i.z][i.y] = NONE;
-				++i.y;
+				this->_blocks[i.x][i.y][i.z] = NONE;
+				++i.z;
 			}
-			++i.z;
+			++i.y;
 		}
 		++i.x;
 	}
@@ -134,7 +133,6 @@ void Chunk::generateChunk()
 
 void Chunk::generateVertices()
 {
-	GLint index;
 	Color color;
 	srand(time(NULL));
 	this->_vertNumb = -1;
@@ -149,7 +147,7 @@ void Chunk::generateVertices()
 			this->_it.x = 0;
 			while (this->_it.x < CHUNK_X)
 			{
-				color = this->_blocks[this->_it.x][this->_it.z][this->_it.y];
+				color = this->_blocks[this->_it.x][this->_it.y][this->_it.z];
 				if (color != NONE)
 					this->addBlockToVertices(getRGBColor(color));
 				++this->_it.x;
@@ -161,66 +159,141 @@ void Chunk::generateVertices()
 	glGenBuffers(1, &this->_vboVertices);
 	glBindBuffer(GL_ARRAY_BUFFER, this->_vboVertices);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(this->_vertices), this->_vertices, GL_STATIC_DRAW);
+	glGenBuffers(1, &this->_vboColors);
+	glBindBuffer(GL_ARRAY_BUFFER, this->_vboColors);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(this->_colors), this->_colors, GL_STATIC_DRAW);
 }
 
 void Chunk::addBlockToVertices(vector3i blockColor)
-{
+{/*
 	int colorInt;
-	float color;
+	int color;
 
-	colorInt = ((blockColor.x & 0x0ff) << 16) | ((blockColor.y & 0x0ff) << 8) | (blockColor.z & 0x0ff);
-	color = colorInt;
+	colorInt = ((blockColor.x) << 16) | ((blockColor.y) << 8) | (blockColor.z);
+	color = colorInt;*/
+	int value = 1;
 	// negative x
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x, this->_it.y, this->_it.z, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x, this->_it.y, this->_it.z + BLOCK_SIZE, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x, this->_it.y + BLOCK_SIZE, this->_it.z, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x, this->_it.y + BLOCK_SIZE, this->_it.z, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x, this->_it.y, this->_it.z + BLOCK_SIZE, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x, this->_it.y + BLOCK_SIZE, this->_it.z + BLOCK_SIZE, color);
+	vector3i tmp;
+
+	tmp = blockColor;
+	if (!(this->_it.x > 0 && this->_blocks[this->_it.x - 1][this->_it.y][this->_it.z] != NONE))
+	{
+		blockColor /= 2;
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value), (this->_it.y * value), (this->_it.z * value));
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value), (this->_it.y * value), (this->_it.z * value) + BLOCK_SIZE);
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value), (this->_it.y * value) + BLOCK_SIZE, (this->_it.z * value));
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value), (this->_it.y * value) + BLOCK_SIZE, (this->_it.z * value));
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value), (this->_it.y * value), (this->_it.z * value) + BLOCK_SIZE);
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value), (this->_it.y * value) + BLOCK_SIZE, (this->_it.z * value) + BLOCK_SIZE);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+	}
 	// positive x
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x + BLOCK_SIZE, this->_it.y, this->_it.z, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x + BLOCK_SIZE, this->_it.y + BLOCK_SIZE, this->_it.z, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x + BLOCK_SIZE, this->_it.y, this->_it.z + BLOCK_SIZE, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x + BLOCK_SIZE, this->_it.y + BLOCK_SIZE, this->_it.z, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x + BLOCK_SIZE, this->_it.y + BLOCK_SIZE, this->_it.z + BLOCK_SIZE, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x + BLOCK_SIZE, this->_it.y, this->_it.z + BLOCK_SIZE, color);
+	blockColor = tmp;
+	if (!(this->_it.x < CHUNK_X - 1 && this->_blocks[this->_it.x + 1][this->_it.y][this->_it.z] != NONE))
+	{
+		blockColor /= 2;
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value) + BLOCK_SIZE, (this->_it.y * value), (this->_it.z * value));
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value) + BLOCK_SIZE, (this->_it.y * value) + BLOCK_SIZE, (this->_it.z * value));
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value) + BLOCK_SIZE, (this->_it.y * value), (this->_it.z * value) + BLOCK_SIZE);
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value) + BLOCK_SIZE, (this->_it.y * value) + BLOCK_SIZE, (this->_it.z * value));
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value) + BLOCK_SIZE, (this->_it.y * value) + BLOCK_SIZE, (this->_it.z * value) + BLOCK_SIZE);
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value) + BLOCK_SIZE, (this->_it.y * value), (this->_it.z * value) + BLOCK_SIZE);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+	}
 	// negative y
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x, this->_it.y, this->_it.z, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x + BLOCK_SIZE, this->_it.y, this->_it.z, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x, this->_it.y, this->_it.z + BLOCK_SIZE, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x + BLOCK_SIZE, this->_it.y, this->_it.z, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x + BLOCK_SIZE, this->_it.y, this->_it.z + BLOCK_SIZE, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x, this->_it.y, this->_it.z + BLOCK_SIZE, color);
+	blockColor = tmp;
+	if (!(this->_it.y > 0 && this->_blocks[this->_it.x][this->_it.y - 1][this->_it.z] != NONE))
+	{
+		blockColor /= 2;
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value), (this->_it.y * value), (this->_it.z * value));
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value) + BLOCK_SIZE, (this->_it.y * value), (this->_it.z * value));
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value), (this->_it.y * value), (this->_it.z * value) + BLOCK_SIZE);
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value) + BLOCK_SIZE, (this->_it.y * value), (this->_it.z * value));
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value) + BLOCK_SIZE, (this->_it.y * value), (this->_it.z * value) + BLOCK_SIZE);
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value), (this->_it.y * value), (this->_it.z * value) + BLOCK_SIZE);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+	}
 	// positive y
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x, this->_it.y + BLOCK_SIZE, this->_it.z, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x, this->_it.y + BLOCK_SIZE, this->_it.z + BLOCK_SIZE, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x + BLOCK_SIZE, this->_it.y + BLOCK_SIZE, this->_it.z, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x + BLOCK_SIZE, this->_it.y + BLOCK_SIZE, this->_it.z, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x, this->_it.y + BLOCK_SIZE, this->_it.z + BLOCK_SIZE, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x + BLOCK_SIZE, this->_it.y + BLOCK_SIZE, this->_it.z + BLOCK_SIZE, color);
+	blockColor = tmp;
+	if (!(this->_it.y < CHUNK_Y - 1 && this->_blocks[this->_it.x][this->_it.y + 1][this->_it.z] != NONE))
+	{
+		blockColor /= 2;
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value), (this->_it.y * value) + BLOCK_SIZE, (this->_it.z * value));
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value), (this->_it.y * value) + BLOCK_SIZE, (this->_it.z * value) + BLOCK_SIZE);
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value) + BLOCK_SIZE, (this->_it.y * value) + BLOCK_SIZE, (this->_it.z * value));
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value) + BLOCK_SIZE, (this->_it.y * value) + BLOCK_SIZE, (this->_it.z * value));
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value), (this->_it.y * value) + BLOCK_SIZE, (this->_it.z * value) + BLOCK_SIZE);
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value) + BLOCK_SIZE, (this->_it.y * value) + BLOCK_SIZE, (this->_it.z * value) + BLOCK_SIZE);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+	}
 	// negative z
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x, this->_it.y, this->_it.z, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x, this->_it.y + BLOCK_SIZE, this->_it.z, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x + BLOCK_SIZE, this->_it.y, this->_it.z, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x, this->_it.y + BLOCK_SIZE, this->_it.z, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x + BLOCK_SIZE, this->_it.y + BLOCK_SIZE, this->_it.z, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x + BLOCK_SIZE, this->_it.y, this->_it.z, color);
+	blockColor = tmp;
+	if (!(this->_it.z > 0 && this->_blocks[this->_it.x][this->_it.y][this->_it.z - 1] != NONE))
+	{
+		blockColor /= 2;
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value), (this->_it.y * value), (this->_it.z * value));
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value), (this->_it.y * value) + BLOCK_SIZE, (this->_it.z * value));
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value) + BLOCK_SIZE, (this->_it.y * value), (this->_it.z * value));
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value), (this->_it.y * value) + BLOCK_SIZE, (this->_it.z * value));
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value) + BLOCK_SIZE, (this->_it.y * value) + BLOCK_SIZE, (this->_it.z * value));
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value) + BLOCK_SIZE, (this->_it.y * value), (this->_it.z * value));
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+	}
 	// positive z
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x, this->_it.y, this->_it.z + BLOCK_SIZE, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x + BLOCK_SIZE, this->_it.y, this->_it.z + BLOCK_SIZE, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x, this->_it.y + BLOCK_SIZE, this->_it.z + BLOCK_SIZE, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x, this->_it.y + BLOCK_SIZE, this->_it.z + BLOCK_SIZE, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x + BLOCK_SIZE, this->_it.y, this->_it.z + BLOCK_SIZE, color);
-	this->_vertices[++this->_vertNumb] = float4(this->_it.x + BLOCK_SIZE, this->_it.y + BLOCK_SIZE, this->_it.z + BLOCK_SIZE, color);
+	blockColor = tmp;
+	if (!(this->_it.z < CHUNK_Z - 1 && this->_blocks[this->_it.x][this->_it.y][this->_it.z + 1] != NONE))
+	{
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value), (this->_it.y * value), (this->_it.z * value) + BLOCK_SIZE);
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value) + BLOCK_SIZE, (this->_it.y * value), (this->_it.z * value) + BLOCK_SIZE);
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value), (this->_it.y * value) + BLOCK_SIZE, (this->_it.z * value) + BLOCK_SIZE);
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value), (this->_it.y * value) + BLOCK_SIZE, (this->_it.z * value) + BLOCK_SIZE);
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value) + BLOCK_SIZE, (this->_it.y * value), (this->_it.z * value) + BLOCK_SIZE);
+		this->_vertices[++this->_vertNumb] = int3((this->_it.x * value) + BLOCK_SIZE, (this->_it.y * value) + BLOCK_SIZE, (this->_it.z * value) + BLOCK_SIZE);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+		this->_colors[++this->_vertColor] = int3(blockColor.x, blockColor.y, blockColor.z);
+	}
 }
 
-void Chunk::render(GLint attributeCoord)
+void Chunk::render(GLint attributeCoord, GLint attributeColor)
 {
 	if (!this->_vertNumb)
 		return;
 	glEnableVertexAttribArray(attributeCoord);
+	glEnableVertexAttribArray(attributeColor);
 	glBindBuffer(GL_ARRAY_BUFFER, this->_vboVertices);
-	glVertexAttribPointer(attributeCoord, 4, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(attributeCoord, 3, GL_INT, GL_FALSE, 0, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, this->_vboColors);
+	glVertexAttribPointer(attributeColor, 3, GL_INT, GL_FALSE, 0, 0);
 	glDrawArrays(GL_TRIANGLES, 0, this->_vertNumb + 1);
 	glDisableVertexAttribArray(attributeCoord);
+	glDisableVertexAttribArray(attributeColor);
 }

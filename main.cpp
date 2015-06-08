@@ -50,11 +50,11 @@ void onKeyboardUp(unsigned char key, int x, int y)
 
 int main(int ac, char **av)
 {
-	g_window = new Renderer(ac, av, vector2i(500, 0), vector2i(640, 480), "OpenGL");
+	g_window = new Renderer(ac, av, vector2i(500, 0), vector2i(1280, 720), "OpenGL");
 	if (g_window->init())
 	{
 		glutSetCursor(GLUT_CURSOR_NONE);
-		glutWarpPointer(320, 240);
+		glutWarpPointer(640, 360);
 		glutDisplayFunc(onDisplay);
 		glutIdleFunc(onIdle);
 		glutReshapeFunc(onReshape);

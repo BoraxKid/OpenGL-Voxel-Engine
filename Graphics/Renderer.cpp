@@ -11,6 +11,7 @@ Renderer::Renderer(int ac, char **av, vector2i position, vector2i size, std::str
 	this->_windowSize = size;
 	this->_program = 0;
 	this->_attCoord = 0;
+	this->_attColor = 0;
 	this->_uniMvp = 0;
 	this->_quit = false;
 }
@@ -38,13 +39,12 @@ bool Renderer::init()
 	if (!this->_program)
 		return (false);
 	this->_attCoord = getAttrib(this->_program, "coord");
+	this->_attColor = getAttrib(this->_program, "colors");
 	this->_uniMvp = getUniform(this->_program, "mvp");
-	if (this->_attCoord == -1 || this->_uniMvp == -1)
+	if (this->_attCoord == -1 || this->_attColor == -1 || this->_uniMvp == -1)
 		return (false);
 	glClearColor(0.0, 0.0, 0.4, 1.0);
 	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
-	glEnable(GL_CULL_FACE);
 	glEnableVertexAttribArray(this->_attCoord);
 	Chunk *tmp;
 	tmp = new Chunk();
@@ -68,7 +68,7 @@ void Renderer::onDisplay()
 	this->_controlManager.computeMatrices(this->_windowSize, this->_mousePos, this->_keys);
 	mvp = this->_controlManager.getProjectionMatrix() * this->_controlManager.getViewMatrix() * glm::mat4(1.0);
 	glUniformMatrix4fv(this->_uniMvp, 1, GL_FALSE, glm::value_ptr(mvp));
-	this->_chunks.at(0)->render(this->_attCoord);
+	this->_chunks.at(0)->render(this->_attCoord, this->_attColor);
 	glutSwapBuffers();
 }
 

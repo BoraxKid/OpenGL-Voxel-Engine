@@ -1,10 +1,10 @@
 #ifndef CHUNK_H_
 #define CHUNK_H_
 
-#define BLOCK_SIZE 1.0f
-#define CHUNK_X 16
-#define CHUNK_Y 16
-#define CHUNK_Z 16
+#define BLOCK_SIZE 1
+#define CHUNK_X 100
+#define CHUNK_Y 100
+#define CHUNK_Z 100
 #define CHUNK_SIZE (CHUNK_X * CHUNK_Y * CHUNK_Z)
 
 #include <math.h>
@@ -17,7 +17,7 @@
 #include "../Dependencies/glew/glew.h"
 #include "../System/Vector.h"
 
-typedef glm::tvec4<GLfloat> float4;
+typedef glm::tvec3<GLint> int3;
 
 typedef struct s_surround
 {
@@ -47,12 +47,14 @@ public:
 	void generateChunk();
 	void generateVertices();
 	void addBlockToVertices(vector3i blockColor);
-	void render(GLint attributeCoord);
+	void render(GLint attributeCoord, GLint attributeColor);
 
 private:
-	float4 _vertices[CHUNK_SIZE * 36];
+	int3 _vertices[CHUNK_SIZE * 36];
+	int3 _colors[CHUNK_SIZE * 36];
 	Color _blocks[CHUNK_X][CHUNK_Y][CHUNK_Z];
 	GLuint _vboVertices;
+	GLuint _vboColors;
 	vector3i _it;
 	Surround *_surround;
 	vector3i _chunckPos;
